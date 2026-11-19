@@ -8,6 +8,8 @@ const router = express.Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const contactPath = path.join(__dirname, '../data/contact.json');
 
+let inMemoryContact = [];
+
 const contactSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   email: z.string().email({ message: 'Please provide a valid email address' }),
@@ -28,10 +30,14 @@ router.post('/', (req, res) => {
   const { name, email, message, topic } = result.data;
 
   try {
-    let items = [];
-    if (fs.existsSync(contactPath)) {
-      const raw = fs.readFileSync(contactPath, 'utf8');
-      items = JSON.parse(raw || '[]');
+    let items = inMemoryContact;
+    try {
+      if (fs.existsSync(contactPath)) {
+        const raw = fs.readFileSync(contactPath, 'utf8');
+        items = JSON.parse(raw || '[]');
+      }
+    } catch {
+      items = inMemoryContact;
     }
 
     const entry = {
@@ -44,7 +50,13 @@ router.post('/', (req, res) => {
     };
 
     items.push(entry);
-    fs.writeFileSync(contactPath, JSON.stringify(items, null, 2), 'utf8');
+    inMemoryContact = items;
+
+    try {
+      fs.writeFileSync(contactPath, JSON.stringify(items, null, 2), 'utf8');
+    } catch {
+      // Handled gracefully in read-only environment
+    }
 
     return res.status(201).json({
       success: true,

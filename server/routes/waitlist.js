@@ -8,6 +8,9 @@ const router = express.Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const waitlistPath = path.join(__dirname, '../data/waitlist.json');
 
+// In-memory fallback for serverless/read-only environments
+let inMemoryWaitlist = [];
+
 const waitlistSchema = z.object({
   email: z.string().email({ message: 'Please provide a valid email address' }),
   role: z.enum(['founder', 'college', 'employer'], {
@@ -28,10 +31,15 @@ router.post('/', (req, res) => {
   const { email, role } = result.data;
 
   try {
-    let items = [];
-    if (fs.existsSync(waitlistPath)) {
-      const raw = fs.readFileSync(waitlistPath, 'utf8');
-      items = JSON.parse(raw || '[]');
+    let items = inMemoryWaitlist;
+    try {
+      if (fs.existsSync(waitlistPath)) {
+        const raw = fs.readFileSync(waitlistPath, 'utf8');
+        items = JSON.parse(raw || '[]');
+      }
+    } catch {
+      // In serverless, use in-memory store
+      items = inMemoryWaitlist;
     }
 
     const existing = items.find((item) => item.email.toLowerCase() === email.toLowerCase());
@@ -51,7 +59,13 @@ router.post('/', (req, res) => {
     };
 
     items.push(entry);
-    fs.writeFileSync(waitlistPath, JSON.stringify(items, null, 2), 'utf8');
+    inMemoryWaitlist = items;
+
+    try {
+      fs.writeFileSync(waitlistPath, JSON.stringify(items, null, 2), 'utf8');
+    } catch {
+      // File system read-only on serverless like Vercel; in-memory store holds it
+    }
 
     return res.status(201).json({
       success: true,

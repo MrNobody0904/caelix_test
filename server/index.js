@@ -16,11 +16,10 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or dev)
       if (!origin || origin === CLIENT_ORIGIN || origin.startsWith('http://localhost:')) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive in dev mode
+        callback(null, true);
       }
     },
     methods: ['GET', 'POST', 'OPTIONS'],
@@ -57,6 +56,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`[Caelix Backend] Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[Caelix Backend] Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
