@@ -1,0 +1,52 @@
+:root {
+  /* Colors */
+  --color-primary: #0071E3;
+  --color-secondary: #0066CC;
+  --color-dark: #1D1D1F;
+  --color-bg-light: #F5F5F7;
+  --color-white: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-border-hover: #0071E3;
+  --color-muted: #6E6E73;
+  --color-error: #D70015;
+
+  /* Typography */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+
+  --fs-hero: clamp(40px, 6vw, 72px);
+  --fs-h2: clamp(32px, 4.5vw, 48px);
+  --fs-h3: clamp(22px, 3vw, 28px);
+  --fs-h4: 20px;
+  --fs-body: 17px;
+  --fs-small: 14px;
+  --fs-tiny: 12px;
+
+  --lh-tight: 1.08;
+  --lh-heading: 1.15;
+  --lh-body: 1.55;
+  --lh-loose: 1.65;
+
+  /* Spacing */
+  --gutter: 24px;
+  --section-spacing-y: clamp(80px, 10vw, 120px);
+  --container-max-w: 1200px;
+  --container-narrow: 840px;
+
+  /* Components */
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+  --radius-badge: 6px;
+
+  --border-thin: 1px solid var(--color-border);
+  --border-focus: 2px solid var(--color-primary);
+
+  /* Button Dimensions */
+  --btn-height: 44px;
+  --btn-height-sm: 36px;
+
+  /* Transitions */
+  --ease-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-fast: 0.18s var(--ease-apple);
+  --transition-normal: 0.28s var(--ease-apple);
+}

@@ -1,0 +1,182 @@
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
+
+export interface PlanItem {
+  id: string;
+  name: string;
+  badge: string | null;
+  tagline: string;
+  monthlyPrice: number | null;
+  annualPricePerMonth: number | null;
+  billingText: string;
+  memberLimit: string;
+  ctaText: string;
+  ctaVariant: 'primary' | 'secondary';
+  ctaAction: 'signup' | 'trial' | 'contact';
+  features: string[];
+}
+
+export interface ComparisonCategory {
+  category: string;
+  items: {
+    name: string;
+    starter: string;
+    team: string;
+    growth: string;
+  }[];
+}
+
+export interface PlansResponse {
+  currency: string;
+  symbol: string;
+  annualDiscount: number;
+  plans: PlanItem[];
+  comparison: ComparisonCategory[];
+}
+
+// Fallback plans if backend offline
+export const FALLBACK_PLANS: PlansResponse = {
+  currency: 'INR',
+  symbol: '₹',
+  annualDiscount: 0.20,
+  plans: [
+    {
+      id: 'starter',
+      name: 'Starter',
+      badge: null,
+      tagline: 'Everything an early-stage team needs to get organized and stay aligned.',
+      monthlyPrice: 0,
+      annualPricePerMonth: 0,
+      billingText: 'Free forever',
+      memberLimit: 'Up to 5 members',
+      ctaText: 'Start free',
+      ctaVariant: 'secondary',
+      ctaAction: 'signup',
+      features: [
+        'Up to 5 members',
+        'Fast organization setup',
+        'Basic employee & team profiles',
+        'Lightweight task board',
+        '1 project workspace',
+        'Community support'
+      ]
+    },
+    {
+      id: 'team',
+      name: 'Team',
+      badge: 'Most popular',
+      tagline: 'The complete operating system for scaling startups of 5 to 30 members.',
+      monthlyPrice: 499,
+      annualPricePerMonth: 399,
+      billingText: 'per member / month',
+      memberLimit: 'Up to 30 members',
+      ctaText: 'Start 14-day trial',
+      ctaVariant: 'primary',
+      ctaAction: 'trial',
+      features: [
+        'Up to 30 members',
+        'Everything in Starter, plus:',
+        'Role-based access (Admin, Sub-admin, Member)',
+        'Verified skills and work history profiles',
+        'AI weekly project & progress summaries',
+        'Milestone tracking & task dependencies',
+        'Essential integrations (Slack, GitHub, Calendar)',
+        'Priority founder-to-founder support'
+      ]
+    },
+    {
+      id: 'growth',
+      name: 'Growth Bundle',
+      badge: 'Software + Execution',
+      tagline: 'Workforce software paired with vetted digital growth delivery.',
+      monthlyPrice: null,
+      annualPricePerMonth: null,
+      billingText: 'Custom fixed fee or monthly retainer',
+      memberLimit: 'Unlimited members',
+      ctaText: 'Talk to us',
+      ctaVariant: 'secondary',
+      ctaAction: 'contact',
+      features: [
+        'Full Caelix Workforce workspace included',
+        'Fixed-fee website design & development',
+        'Technical & content SEO sprint',
+        'Identity & brand guidelines packaging',
+        'Milestones & approvals tracked in your workspace',
+        'Dedicated growth lead and direct review channel'
+      ]
+    }
+  ],
+  comparison: [
+    {
+      category: 'Core Workspace',
+      items: [
+        { name: 'Team members', starter: 'Up to 5', team: 'Up to 30', growth: 'Unlimited' },
+        { name: 'Organization & dept setup', starter: 'Basic', team: 'Full hierarchy', growth: 'Full hierarchy' },
+        { name: 'Role-based access (Admin / Sub-admin / Member)', starter: '—', team: 'Yes', growth: 'Yes' },
+        { name: 'Profiles with skills & history', starter: 'Basic', team: 'Rich & verified', growth: 'Rich & verified' },
+        { name: 'Task & project boards', starter: '1 workspace', team: 'Unlimited', growth: 'Unlimited' },
+        { name: 'Milestone approval tracking', starter: '—', team: 'Yes', growth: 'Yes' }
+      ]
+    },
+    {
+      category: 'Intelligence & Insights',
+      items: [
+        { name: 'AI weekly progress summaries', starter: '—', team: 'Yes (transparent data)', growth: 'Yes (transparent data)' },
+        { name: 'Audit & permission logs', starter: '7 days', team: '90 days', growth: 'Unlimited' },
+        { name: 'Export team record', starter: 'CSV', team: 'CSV & JSON', growth: 'CSV, JSON & API' }
+      ]
+    },
+    {
+      category: 'Growth Services Integration',
+      items: [
+        { name: 'Shared milestone tracking with agency', starter: '—', team: 'Add-on ready', growth: 'Included' },
+        { name: 'Digital presence deliverables', starter: '—', team: 'On-demand', growth: 'Dedicated sprint' },
+        { name: 'Approval sign-offs in workspace', starter: '—', team: 'Yes', growth: 'Yes' }
+      ]
+    },
+    {
+      category: 'Support & Security',
+      items: [
+        { name: 'Data encryption & privacy controls', starter: 'Yes', team: 'Yes', growth: 'Yes' },
+        { name: 'Support', starter: 'Community', team: 'Priority chat & email', growth: 'Dedicated partner lead' }
+      ]
+    }
+  ]
+};
+
+export async function fetchPlans(): Promise<PlansResponse> {
+  try {
+    const res = await fetch(`${API_BASE}/plans`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    return data.data || FALLBACK_PLANS;
+  } catch (err) {
+    console.warn('Backend unavailable, using bundled plans data:', err);
+    return FALLBACK_PLANS;
+  }
+}
+
+export async function submitWaitlist(payload: { email: string; role: 'founder' | 'college' | 'employer' }) {
+  const res = await fetch(`${API_BASE}/waitlist`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Failed to submit waitlist form');
+  }
+  return data;
+}
+
+export async function submitContact(payload: { name: string; email: string; message: string; topic?: string }) {
+  const res = await fetch(`${API_BASE}/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Failed to submit contact message');
+  }
+  return data;
+}
